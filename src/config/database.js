@@ -1,40 +1,39 @@
 const { Sequelize } = require("sequelize");
 const config = require("./config");
 
+// Singleton Sequelize instance
+let sequelize;
+
 const buildSequelizeInstance = () => {
   const baseOptions = {
     dialect: config.db.dialect,
     pool: config.db.pool,
     logging: config.app.env === "dev" ? console.log : false,
     timezone: "+07:00",
-    define: {
-      underscored: true,
-    },
-    dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false,
-      },
-    },
+    define: { underscored: true },
+    dialectModule: require("pg"),
+    dialectOptions: config.db.dialectOptions,
   };
-
-  // Override SSL settings if explicitly configured
-  if (process.env.DB_SSL_REJECT_UNAUTHORIZED === "true") {
-    baseOptions.dialectOptions.ssl.rejectUnauthorized = true;
-  }
 
   if (config.db.url) {
     return new Sequelize(config.db.url, baseOptions);
   }
 
-  return new Sequelize(config.db.database, config.db.user, config.db.password, {
-    ...baseOptions,
-    host: config.db.host,
-    port: config.db.port,
-  });
+  return new Sequelize(
+    config.db.database,
+    config.db.username,
+    config.db.password,
+    {
+      ...baseOptions,
+      host: config.db.host,
+      port: config.db.port,
+    }
+  );
 };
 
-const sequelize = buildSequelizeInstance();
+if (!sequelize) {
+  sequelize = buildSequelizeInstance();
+}
 
 const connectDatabase = async () => {
   try {
