@@ -13,7 +13,7 @@
     }
   ],
   "env": {
-    "APP_ENV": "production",
+    "APP_ENV": "uat",
     "VERCEL": "1"
   },
   "regions": ["sin1"]
